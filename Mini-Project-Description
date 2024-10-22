@@ -1,0 +1,6 @@
+Features:
+Create Account: Allows users to open a new account by entering basic details.
+View Account: Displays the details of a specific account using an account number.
+Deposit Money: Adds funds to an existing account.
+Withdraw Money: Deducts funds from an existing account, ensuring that the withdrawal doesn’t exceed the available balance.
+Close Account: Deletes an account permanently.
