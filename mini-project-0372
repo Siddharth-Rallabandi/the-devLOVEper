@@ -1,0 +1,160 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Account {
+    int account_number;
+    char name[30];
+    float balance;
+};
+
+void add_account() {
+    struct Account acc;
+    FILE *file = fopen("accounts.dat", "ab");
+
+    printf("Enter account number: ");
+    scanf("%d", &acc.account_number);
+    printf("Enter account holder's name: ");
+    scanf("%s", acc.name);
+    printf("Enter initial deposit: ");
+    scanf("%f", &acc.balance);
+
+    fwrite(&acc, sizeof(struct Account), 1, file);
+    fclose(file);
+    printf("Account successfully created.\n");
+}
+void view_account() {
+    int account_number;
+    struct Account acc;
+    FILE *file = fopen("accounts.dat", "rb");
+
+    printf("Enter account number: ");
+    scanf("%d", &account_number);
+
+    while(fread(&acc, sizeof(struct Account), 1, file)) {
+        if (acc.account_number == account_number) {
+            printf("\nAccount Number: %d\n", acc.account_number);
+            printf("Account Holder: %s\n", acc.name);
+            printf("Balance: %.2f\n", acc.balance);
+            fclose(file);
+            return;
+        }
+    }
+
+    printf("Account not found.\n");
+    fclose(file);
+}
+void deposit() {
+    int account_number;
+    float deposit_amount;
+    struct Account acc;
+    FILE *file = fopen("accounts.dat", "rb+");
+
+    printf("Enter account number: ");
+    scanf("%d", &account_number);
+    printf("Enter deposit amount: ");
+    scanf("%f", &deposit_amount);
+
+    while(fread(&acc, sizeof(struct Account), 1, file)) {
+        if (acc.account_number == account_number) {
+            acc.balance += deposit_amount;
+            fseek(file, -sizeof(struct Account), SEEK_CUR);
+            fwrite(&acc, sizeof(struct Account), 1, file);
+            printf("Deposit successful. Updated balance: %.2f\n", acc.balance);
+            fclose(file);
+            return;
+        }
+    }
+
+    printf("Account not found.\n");
+    fclose(file);
+}
+void withdraw() {
+    int account_number;
+    float withdraw_amount;
+    struct Account acc;
+    FILE *file = fopen("accounts.dat", "rb+");
+
+    printf("Enter account number: ");
+    scanf("%d", &account_number);
+    printf("Enter withdrawal amount: ");
+    scanf("%f", &withdraw_amount);
+
+    while(fread(&acc, sizeof(struct Account), 1, file)) {
+        if (acc.account_number == account_number) {
+            if (acc.balance >= withdraw_amount) {
+                acc.balance -= withdraw_amount;
+                fseek(file, -sizeof(struct Account), SEEK_CUR);
+                fwrite(&acc, sizeof(struct Account), 1, file);
+                printf("Withdrawal successful. Updated balance: %.2f\n", acc.balance);
+            } else {
+                printf("Insufficient balance.\n");
+            }
+            fclose(file);
+            return;
+        }
+    }
+
+    printf("Account not found.\n");
+    fclose(file);
+}
+void delete_account() {
+    int account_number;
+    struct Account acc;
+    FILE *file = fopen("accounts.dat", "rb");
+    FILE *temp_file = fopen("temp.dat", "wb");
+
+    printf("Enter account number to delete: ");
+    scanf("%d", &account_number);
+
+    while(fread(&acc, sizeof(struct Account), 1, file)) {
+        if (acc.account_number != account_number) {
+            fwrite(&acc, sizeof(struct Account), 1, temp_file);
+        }
+    }
+
+    fclose(file);
+    fclose(temp_file);
+
+    remove("accounts.dat");
+    rename("temp.dat", "accounts.dat");
+
+    printf("Account successfully deleted.\n");
+}
+int main() {
+    int choice;
+
+    while(1) {
+        printf("\n1. Open New Account\n");
+        printf("2. View Account\n");
+        printf("3. Deposit Money\n");
+        printf("4. Withdraw Money\n");
+        printf("5. Delete Account\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch(choice) {
+            case 1:
+                add_account();
+                break;
+            case 2:
+                view_account();
+                break;
+            case 3:
+                deposit();
+                break;
+            case 4:
+                withdraw();
+                break;
+            case 5:
+                delete_account();
+                break;
+            case 6:
+                exit(0);
+            default:
+                printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
